@@ -137,14 +137,165 @@ get_RSI <- function(ftx,
    geom_abline(slope = 0, intercept = 30) + 
    geom_abline(slope = 0, intercept = 70) + theme_classic()
  
- ggplotly(g)
+ ggplotly(g) %>% 
+   layout(title ="Relative Strength Index")
  
   }
 
 #  MACD Calculation ---- 
 
-#  FIB EMA Review Table ----
+get_MACD <- function(ftx,
+                     ob_color = "#bedf8e", 
+                     os_color = "#c19bff"){ 
+  macd <- data.frame( Date = ftx$startTime, MACD(ftx$close))
+  macd$vs_baseline <- macd$macd - macd$signal
+  
+  ymin = floor(min(macd$vs_baseline,na.rm = TRUE))
+  ymax = ceiling(max(macd$vs_baseline,na.rm = TRUE))
+  
+  g <- ggplot(macd, aes(x = Date, y = vs_baseline)) + 
+    annotate("rect", 
+             xmin = min(macd$Date),
+             xmax = max(macd$Date), 
+             ymin = 0, 
+             ymax = ymax + 1,
+             alpha = 0.5, 
+             fill = ob_color) + 
+    annotate("text", 
+             x = median(macd$Date),
+             y = ymax, 
+             label = "Bullish") + 
+    annotate("rect", 
+             xmin = min(macd$Date), 
+             xmax = max(macd$Date),
+             ymin = ymin - 1, 
+             ymax = 0,
+             alpha = 0.5, 
+             fill = os_color) + 
+    annotate("text",
+             x = median(macd$Date),
+             y = ymin,
+             label = "Bearish") + 
+    geom_line() + theme_classic()
+  
+  ggplotly(g) %>% 
+    layout(title ="MACD (Signal Adjusted)")
+  
+  }
 
-#  FIB EMA Ratio Charts ---- 
+#  Get Fib Status ----
 
+add_fib_status <- function(ftx){ 
+  df <- ftx
+  df$c8d55 <- df$close_8/df$close_55 - 1
+  df$c13d55 <- df$close_13/df$close_55 - 1
+  df$c21d55 <- df$close_21/df$close_55 - 1
+  
+  df$status <- NA
+  
+  for(i in 1:nrow(df)){ 
+    if( is.na(df$close_55[i]) ){
+      df$status[i] <- NA
+    } else if( df$c8d55[i] > 0 & df$c13d55[i] > 0 & df$c21d55[i] > 0) { 
+      df$status[i] <- "BULL"
+    } else if(  df$c8d55[i] < 0 & df$c13d55[i] < 0 & df$c21d55[i] < 0){ 
+        df$status[i] <- "BEAR"
+    } else { 
+      df$status[i] <- "CRAB"  
+      }
+  }
+  
+  df$sequence <- NA
+  for(i in 1:nrow(df)){ 
+    if( is.na(df$close_55[i]) ){
+      df$status[i] <- NA
+    } else if(!is.na(df$status[i - 1]) & df$status[i] == df$status[i-1]){
+        df$sequence[i] <- TRUE
+      } else { 
+        df$sequence[i] <- FALSE
+        }
+  }
+  
+  return(df)
+  }
 
+#  FIB Status-Sequence ---- 
+
+get_fib_sequences <- function(ftx){ 
+
+  current_status <- ftx[nrow(ftx), "status"]
+  break_index <- which(!ftx$sequence)
+  current_length <- nrow(ftx) - max(break_index)
+  
+  current_list <- list(
+    current_status = current_status,
+    current_length = current_length,
+    break_index = break_index)
+  
+  status_splits <- split(ftx, ftx$status)
+  
+  sequence_lengths <- function(status_split){ 
+    
+    x <- status_split$sequence
+    
+    # if the final sequence is TRUE
+    # add a fake false to count ongoing trend (then adjust for it)
+    if(tail(x, 1) == TRUE){ 
+      trend_lengths <- diff( which(!c(x,FALSE)) )
+      trend_lengths[length(trend_lengths)] <- trend_lengths[length(trend_lengths)] - 1
+    } else { 
+      trend_lengths <- diff( which(!x) )
+      }
+    return(trend_lengths)
+  }
+  
+  historic_lengths <- lapply(status_splits, sequence_lengths)
+
+  sequence_list <- list(
+    cl = current_list, 
+    hl = historic_lengths
+  )
+  
+  return(sequence_list)
+  }
+
+# Sequence History Plots ---- 
+
+get_history <- function(ftx_sequence){ 
+  
+  plot_ly(type = "box") %>% 
+    add_boxplot(x = ftx_sequence$hl$BEAR, boxpoints = "all", pointpos = 0, 
+                marker = list(color = "black"),
+                line = list(color = "black"),
+                name = "Bear") %>% 
+    add_boxplot(x = ftx_sequence$hl$CRAB, boxpoints = "all", pointpos = 0, 
+                marker = list(color = "black"),
+                line = list(color = "black"),
+                name = "Crab") %>%
+    add_boxplot(x = ftx_sequence$hl$BULL, boxpoints = "all", pointpos = 0, 
+                marker = list(color = "black"),
+                line = list(color = "black"),
+                name = "Bull") %>% 
+    add_boxplot(x = as.numeric(unlist(ftx_sequence$hl)), boxpoints = "all", pointpos = 0, 
+                marker = list(color = "black"),
+                line = list(color = "black"),
+                name = "All Markets") %>% 
+    layout(title = "Historical Market Lengths (# Resolutions)", 
+           xaxis = list(categoryorder = "array",
+                        categoryarray = c("All Markets","Bull","Crab","Bear")),
+           legend = list(traceorder = "reversed")
+           )
+
+  }
+
+get_single_history <- function(ftx_sequence, market, current){ 
+  plot_ly(type = "box") %>% 
+    add_boxplot(x = ftx_sequence$hl[[market]], boxpoints = "all", pointpos = 0, 
+                marker = list(color = "black"),
+                line = list(color = "black"),
+                name = market) %>%
+    layout(title = paste0("Historical ", market, " Cycle Length"), 
+           showlegend = FALSE,
+           xaxis = list(title = "Cycle Length (# Resolutions)"),
+           yaxis = list(title = ""))
+}

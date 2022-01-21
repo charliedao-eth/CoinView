@@ -4,7 +4,7 @@ source("CoinView/global.R")
 base_currency = "ETH"
 quote_currency = "USD"
 resolution = "four_hour"
-start_date = "2018-01-01"
+start_date = "2020-01-01"
 end_date = as.character(Sys.Date())
 
 ethusd <- get_ftx(base_currency = base_currency,
@@ -31,8 +31,20 @@ get_RSI(ethusd)
 
 # Test MACD Calculation ---- 
 
-MACD(ethusd$close)
+get_MACD(ethusd)
 
-# Test FIB EMA Review Table ----
+# Get FIB Status ----
 
-# Test FIB EMA Ratio Charts ---- 
+ethusd <- add_fib_status(ethusd)
+
+# Test FIB Status-Sequence ---- 
+
+ethusd_sequence <- get_fib_sequences(ethusd)
+
+# Test All Market History Plot ----
+get_history(ethusd_sequence)
+
+# Test Singular Market History ----
+get_single_history(ethusd_sequence,
+                   ethusd_sequence$cl$current_status,
+                   ethusd_sequence$cl$current_length)
