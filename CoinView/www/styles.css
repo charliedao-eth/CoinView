@@ -1,0 +1,15 @@
+/* Coinview CSS */
+
+.button-bar {
+  background-color: #c6ccc2;
+  text-align: center;
+}
+
+.center-button { 
+  margin: auto;
+  text-align: center;
+}
+
+.current-market-boxplot { 
+  padding-top: 10px;
+}
