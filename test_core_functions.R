@@ -48,3 +48,7 @@ get_history(ethusd_sequence)
 get_single_history(ethusd_sequence,
                    ethusd_sequence$cl$current_status,
                    ethusd_sequence$cl$current_length)
+
+# Test Table ----
+
+ cycle_table(ethusd_sequence)

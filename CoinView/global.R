@@ -4,7 +4,9 @@ library(jsonlite)
 library(ggplot2)
 library(plotly)
 library(quantmod)
+library(DT)
 
+ template <- read.csv("template.csv")
 
 # FTX Data Pull From Global ----
 get_ftx <- function(base_currency, quote_currency, 
@@ -113,7 +115,8 @@ get_candle <- function(ftx,
            xaxis = list(rangeslider = list(visible = F),
                         title = "Date"),
            yaxis = list(title = "Price"),
-           showlegend = TRUE)
+           showlegend = TRUE, 
+           legend = list(orientation = "h"))
   
   return(fig)
   
@@ -138,7 +141,10 @@ get_RSI <- function(ftx,
    geom_abline(slope = 0, intercept = 70) + theme_classic()
  
  ggplotly(g) %>% 
-   layout(title ="Relative Strength Index")
+   layout(title ="Relative Strength Index",
+          yaxis = list(range = c(0,100)),
+          xaxis = list(range = as.numeric(c(min(rsi$Date), max(rsi$Date))))
+   )
  
   }
 
@@ -299,3 +305,27 @@ get_single_history <- function(ftx_sequence, market, current){
            xaxis = list(title = "Cycle Length (# Resolutions)"),
            yaxis = list(title = ""))
 }
+
+# Nice Table ----
+
+get_dt <- function(x){
+  # Makes a nice table for presentation. Must be rendered in HTML.
+  
+  DT::datatable(x, 
+                options = list(dom = 'tlp',
+                               columnDefs = list(list(className = 'dt-center',
+                                                      targets = "_all")))
+  )
+}
+
+cycle_table <- function(ftx_sequence){ 
+  
+  get_dt(
+    data.frame("Current Market Status" = ftx_sequence$cl$current_status, 
+               "Cycle Length (ongoing)" = ftx_sequence$cl$current_length,
+               "Avg Cycle Length" = ceiling(mean(ftx_sequence$hl[[ftx_sequence$cl$current_status]])),
+               "Median Cycle Length" = median(ftx_sequence$hl[[ftx_sequence$cl$current_status]]),
+               check.names = FALSE, row.names = NULL)
+  )
+  
+  }
