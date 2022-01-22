@@ -1,8 +1,5 @@
 
 library(shiny)
-library(plotly)
-library(quantmod)
-library(DT)
 source("global.R")
 
 # Define UI for application

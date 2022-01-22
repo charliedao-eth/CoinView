@@ -6,8 +6,6 @@ library(plotly)
 library(quantmod)
 library(DT)
 
- template <- read.csv("template.csv")
-
 # FTX Data Pull From Global ----
 get_ftx <- function(base_currency, quote_currency, 
                     resolution,
