@@ -125,8 +125,8 @@ get_candle <- function(ftx,
 #  RSI Calculation ----
 
 get_RSI <- function(ftx,
-                    ob_color = "#bedf8e", 
-                    os_color = "#c19bff"){ 
+                    ob_color = "#c19bff",
+                    os_color = "#bedf8e"){ 
  rsi <- data.frame( Date = ftx$startTime, RSI = RSI(ftx$close))
 
  g <- ggplot(rsi, aes(x = Date, y = RSI)) + 
@@ -144,7 +144,7 @@ get_RSI <- function(ftx,
    layout(title ="Relative Strength Index",
           yaxis = list(range = c(0,100)),
           xaxis = list(range = as.numeric(c(min(rsi$Date), max(rsi$Date))))
-   )
+   ) 
  
   }
 
@@ -185,7 +185,8 @@ get_MACD <- function(ftx,
     geom_line() + theme_classic()
   
   ggplotly(g) %>% 
-    layout(title ="MACD (Signal Adjusted)")
+    layout(title ="MACD (Signal Adjusted)",
+           xaxis = list(range = as.numeric(c(min(macd$Date), max(macd$Date)))))
   
   }
 
@@ -321,10 +322,10 @@ get_dt <- function(x){
 cycle_table <- function(ftx_sequence){ 
   
   get_dt(
-    data.frame("Current Market Status" = ftx_sequence$cl$current_status, 
+    data.frame("Current Cycle" = ftx_sequence$cl$current_status, 
                "Cycle Length (ongoing)" = ftx_sequence$cl$current_length,
                "Avg Cycle Length" = ceiling(mean(ftx_sequence$hl[[ftx_sequence$cl$current_status]])),
-               "Median Cycle Length" = median(ftx_sequence$hl[[ftx_sequence$cl$current_status]]),
+               "Median Cycle Length" = ceiling(median(ftx_sequence$hl[[ftx_sequence$cl$current_status]])),
                check.names = FALSE, row.names = NULL)
   )
   
