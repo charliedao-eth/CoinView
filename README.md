@@ -1,5 +1,7 @@
 # CoinView
  Select a token and view a few key metrics using FTX historical data at desired windows.
+ 
+ Available at [CharlieDAO's R Shiny Apps Server.](https://charliedao.shinyapps.io/coin_view/)
 
 # Instructions 
 
