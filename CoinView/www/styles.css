@@ -5,11 +5,20 @@
   text-align: center;
 }
 
+.fib-explain { 
+  text-align: center;
+  
+}
 .center-button { 
   margin: auto;
   text-align: center;
 }
-
+  
 .current-market-boxplot { 
-  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.footer { 
+  text-align: center;
+  
 }
