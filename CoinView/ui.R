@@ -48,7 +48,7 @@ shinyUI(ui = fluidPage(
                              label = "End Date",
                              value = Sys.Date()+1,
                              min = "2019-09-14",
-                             max = Sys.Date()+1)),
+                             max = Sys.Date()+2)),
             column(2, 
                    br(),
                    div(class = "center-button",

@@ -36,3 +36,6 @@ vignettes/*.pdf
 rsconnect/
 *.html
 CoinView/template.csv
+*.bat
+run.R
+run.Rout
